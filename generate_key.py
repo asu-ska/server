@@ -28,9 +28,34 @@ cert = x509.CertificateBuilder().subject_name(
     datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=365)
 ).add_extension(
     x509.SubjectAlternativeName([
-        x509.DNSName("localhost"), 
+        x509.DNSName("localhost"),
         x509.IPAddress(ipaddress.ip_address("127.0.0.1"))
     ]),
+    critical=False,
+).add_extension(
+    x509.BasicConstraints(ca=False, path_length=None),
+    critical=True,
+).add_extension(
+    x509.KeyUsage(
+        digital_signature=True,  # Обязательно для самоподписанных в новых Chrome
+        content_commitment=False,
+        key_encipherment=True,   # Нужно для TLS RSA
+        data_encipherment=False,
+        key_agreement=False,
+        key_cert_sign=False,
+        crl_sign=False,
+        encipher_only=False,
+        decipher_only=False,
+    ),
+    critical=True,
+).add_extension(
+    x509.ExtendedKeyUsage([x509.oid.ExtendedKeyUsageOID.SERVER_AUTH]),
+    critical=False,
+).add_extension(
+    x509.SubjectKeyIdentifier.from_public_key(key.public_key()),
+    critical=False,
+).add_extension(
+    x509.AuthorityKeyIdentifier.from_issuer_public_key(key.public_key()),
     critical=False,
 ).sign(key, hashes.SHA256())
 
@@ -43,7 +68,7 @@ with open("localhost-key.pem", "wb") as f:
     ))
 
 # Сохраняем сертификат
-with open("localhost-cert.pem", "wb") as f:
+with open("localhost-cert.crt", "wb") as f:
     f.write(cert.public_bytes(serialization.Encoding.PEM))
 
-print("Сертификаты успешно созданы в текущей папке!")
+print("Сертификаты успешно созданы.")

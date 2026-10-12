@@ -66,9 +66,9 @@ app = Litestar(
 if __name__ == "__main__":
     uvicorn.run(
         'main:app',
-        host='127.0.0.1',
+        host='0.0.0.0',
         port=443,
         reload=True,
         ssl_keyfile="localhost-key.pem",
-        ssl_certfile="localhost-cert.pem"
+        ssl_certfile="localhost-cert.crt"
     )
